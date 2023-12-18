@@ -14,11 +14,23 @@ def home():
 def get_sequence_id(cursor, table_name):
     cr = cursor
     cr.execute(f'''
-        SELECT max(id) FROM {table_name};
+        SELECT max(id) FROM {table_name}
+        ORDER BY id ASC;
     ''')
     last_id = cr.fetchall()[0]
     id = last_id[0]+1 if last_id[0] else 0  + 1
     return id
+
+def check_exist(cursor, table_name, field, value):
+    cr = cursor
+    cr.execute(f'''
+        SELECT {field} FROM {table_name}
+        WHERE {field} = '{value}';
+    ''')
+    exists = cr.fetchall()
+    if len(exists):
+        return True
+    return False
 
 @app.route('/category')
 def categories():
@@ -30,7 +42,7 @@ def categories():
     conn.close()
     return {'categories': categs}, 200
 
-@app.route('/category/write/')
+# @app.route('/category/write/')
 
 @app.route('/category/create', methods=['POST'])
 def create_categories():
@@ -60,13 +72,20 @@ def create_users():
     data = request.get_json()
     conn = sqlite3.connect('data.db')
     cr = conn.cursor()
-    id = get_sequence_id(cr, table_name="category")
+    id = get_sequence_id(cr, table_name="user")
+    check_name = check_exist(cr, "user", "name", data['name'])
+    check_email = check_exist(cr, "user", "email", data['email'])
+    
+    if check_email or check_name:
+        return {'status': False, 'message': "Email or Username already exist."}
+    
     cr.execute('''
         INSERT INTO user VALUES (?, ?, ?, ?, ?)
-    ''', (id, data['name'], data['email'], data['password'], data['is_admin']))
+    ''', (id, data['name'], data['email'], data['password'], data.get('is_admin') or False))
     conn.commit()
     conn.close()
-    return "Created Successfully.", 200
+    
+    return {'status': True, 'message': "Registered Successfully."}
 
 @app.route('/user/authenticate', methods=['POST'])
 def login_users():
@@ -85,7 +104,7 @@ def login_users():
     if users and data['password'] == users['password']:
         return {'status': True, 'message': "Login was successful", 'user': users}
     else:
-        return {'status': False, 'message': "User not found."}, 401
+        return {'status': False, 'message': "User not found."}
 
 
 
