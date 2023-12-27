@@ -11,6 +11,13 @@ CORS(app)
 def home():
     return 'Home', 200
 
+def _drop_table(cursor, table_name):
+    cr = cursor
+    cr.execute(f'''
+        SELECT max(id) FROM {table_name}
+        ORDER BY id ASC;
+    ''')
+
 def get_sequence_id(cursor, table_name):
     cr = cursor
     cr.execute(f'''
@@ -32,30 +39,6 @@ def check_exist(cursor, table_name, field, value):
         return True
     return False
 
-@app.route('/category')
-def categories():
-    conn = sqlite3.connect('data.db')
-    cr = conn.cursor()
-    cr.execute('SELECT * FROM category')
-    categs = [{'id': row[0], 'name': row[1], 'detail': row[2], 'image': row[3], 'image_url': row[4]} for row in cr.fetchall()]
-    conn.commit()
-    conn.close()
-    return {'categories': categs}, 200
-
-# @app.route('/category/write/')
-
-@app.route('/category/create', methods=['POST'])
-def create_categories():
-    data = request.get_json()
-    conn = sqlite3.connect('data.db')
-    cr = conn.cursor()
-    id = get_sequence_id(cr, table_name="category")
-    cr.execute('''
-        INSERT INTO category VALUES (?, ?, ?, ?, ?)
-    ''', (id, data['name'], data['detail'], data['image'], data['image_url']))
-    conn.commit()
-    conn.close()
-    return "Created Successfully.", 200
 
 @app.route('/user')
 def users():
@@ -105,12 +88,186 @@ def login_users():
         return {'status': True, 'message': "Login was successful", 'user': users}
     else:
         return {'status': False, 'message': "User not found."}
+    
+    
+
+@app.route('/category')
+def categories():
+    conn = sqlite3.connect('data.db')
+    cr = conn.cursor()
+    cr.execute('SELECT * FROM category')
+    categs = [{'id': row[0], 'name': row[1], 'detail': row[2], 'image': row[3], 'image_url': row[4]} for row in cr.fetchall()]
+    conn.commit()
+    conn.close()
+    return {'categories': categs}, 200
+
+@app.route('/category/selection')
+def categories_selection():
+    conn = sqlite3.connect('data.db')
+    cr = conn.cursor()
+    cr.execute('SELECT * FROM category')
+    categs = [{'value': row[0], 'label': row[1]} for row in cr.fetchall()]
+    conn.commit()
+    conn.close()
+    return {'categories': categs}, 200
+
+@app.route('/category/create', methods=['POST'])
+def create_categories():
+    data = request.get_json()
+    conn = sqlite3.connect('data.db')
+    cr = conn.cursor()
+    id = get_sequence_id(cr, table_name="category")
+    cr.execute('''
+        INSERT INTO category VALUES (?, ?, ?, ?, ?)
+    ''', (id, data['name'], data['detail'], data['image'], data['image_url']))
+    conn.commit()
+    conn.close()
+    return "Created Successfully.", 200
+
+@app.route('/province')
+def provinces():
+    conn = sqlite3.connect('data.db')
+    cr = conn.cursor()
+    cr.execute('SELECT * FROM province')
+    provinces = [{'id': row[0], 'name': row[1]} for row in cr.fetchall()]
+    conn.commit()
+    conn.close()
+    return {'province': provinces}, 200
+
+@app.route('/province/create', methods=['POST'])
+def create_provinces():
+    data = request.get_json()
+    conn = sqlite3.connect('data.db')
+    cr = conn.cursor()
+    id = get_sequence_id(cr, table_name="province")
+    cr.execute('''
+        INSERT INTO province VALUES (?, ?)
+    ''', (id, data['name']))
+    conn.commit()
+    conn.close()
+    return "Created Successfully.", 200
+
+@app.route('/province/data')
+def get_province_data():
+    conn = sqlite3.connect('data.db')
+    cr = conn.cursor()
+
+    data = []
+    cr.execute('SELECT * FROM province')
+    provinces = [{'id': row[0], 'name': row[1]} for row in cr.fetchall()]
+    for prov in provinces:
+        
+        cr.execute('SELECT * FROM place WHERE province_id = ' + str(prov['id']))
+        places = [{'id': row[0], 'name': row[1], 'detail': row[2], 'image': row[3], 'image_url': row[4], 'price': row[5], 'province_id': row[6]} for row in cr.fetchall()]
+        
+        cr.execute('SELECT * FROM accomodation WHERE province_id = ' + str(prov['id']))
+        accomodations = [{'id': row[0], 'name': row[1], 'detail': row[2], 'image': row[3], 'image_url': row[4], 'price': row[5], 'province_id': row[6]} for row in cr.fetchall()]
+        
+        cr.execute('SELECT * FROM transportation')
+        transportations = [{'id': row[0], 'name': row[1], 'detail': row[2], 'image': row[3], 'image_url': row[4], 'price': row[5]} for row in cr.fetchall()]
+        
+        data.append({
+            'province': prov,
+            'place': places,
+            'accomodation': accomodations,
+            'transportation': transportations
+        })
+    conn.commit()
+    conn.close()
+    return {'data': data}, 200
+
+
+
+
+@app.route('/place')
+def places():
+    conn = sqlite3.connect('data.db')
+    cr = conn.cursor()
+    cr.execute('SELECT * FROM place')
+    places = [{'id': row[0], 'name': row[1], 'detail': row[2], 'image': row[3], 'image_url': row[4], 'price': row[5], 'province_id': row[5]} for row in cr.fetchall()]
+    conn.commit()
+    conn.close()
+    return {'places': places}, 200
+
+@app.route('/place/create', methods=['POST'])
+def create_places():
+    data = request.get_json()
+    conn = sqlite3.connect('data.db')
+    cr = conn.cursor()
+    id = get_sequence_id(cr, table_name="place")
+    cr.execute('''
+        INSERT INTO place VALUES (?, ?, ?, ?, ?, ?, ?)
+    ''', (id, data['name'], data['detail'], data['image'], data['image_url'], data['price'], data['province_id']))
+    conn.commit()
+    conn.close()
+    return "Created Successfully.", 200
+
+
+
+@app.route('/accomodation')
+def accomodations():
+    conn = sqlite3.connect('data.db')
+    cr = conn.cursor()
+    cr.execute('SELECT * FROM accomodation')
+    accomodations = [{'id': row[0], 'name': row[1], 'detail': row[2], 'image': row[3], 'image_url': row[4], 'price': row[5], 'province_id': row[5]} for row in cr.fetchall()]
+    conn.commit()
+    conn.close()
+    return {'accomodations': accomodations}, 200
+
+@app.route('/accomodation/create', methods=['POST'])
+def create_accomodation():
+    data = request.get_json()
+    conn = sqlite3.connect('data.db')
+    cr = conn.cursor()
+    id = get_sequence_id(cr, table_name="accomodation")
+    cr.execute('''
+        INSERT INTO accomodation VALUES (?, ?, ?, ?, ?, ?, ?)
+    ''', (id, data['name'], data['detail'], data['image'], data['image_url'], data['price'], data['province_id']))
+    conn.commit()
+    conn.close()
+    return "Created Successfully.", 200
+
+
+@app.route('/transportation')
+def transportations():
+    conn = sqlite3.connect('data.db')
+    cr = conn.cursor()
+    cr.execute('SELECT * FROM accomodation')
+    transportations = [{'id': row[0], 'name': row[1], 'detail': row[2], 'image': row[3], 'image_url': row[4], 'price': row[5]} for row in cr.fetchall()]
+    conn.commit()
+    conn.close()
+    return {'transportations': transportations}, 200
+
+@app.route('/transportation/create', methods=['POST'])
+def create_transportation():
+    data = request.get_json()
+    conn = sqlite3.connect('data.db')
+    cr = conn.cursor()
+    id = get_sequence_id(cr, table_name="transportation")
+    cr.execute('''
+        INSERT INTO transportation VALUES (?, ?, ?, ?, ?, ?)
+    ''', (id, data['name'], data['detail'], data['image'], data['image_url'], data['price']))
+    conn.commit()
+    conn.close()
+    return "Created Successfully.", 200
 
 
 
 if __name__ == '__main__':
     conn = sqlite3.connect('data.db')
     cur = conn.cursor()
+    
+    # for table in ['place']:
+    #     _drop_table(cur, table)
+    
+    cur.execute('''
+        CREATE TABLE IF NOT EXISTS user (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT,
+            email TEXT,
+            password TEXT,
+            is_admin BOOLEAN
+        )''')
     cur.execute('''
         CREATE TABLE IF NOT EXISTS category (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -120,12 +277,38 @@ if __name__ == '__main__':
             image_url TEXT
         )''')
     cur.execute('''
-        CREATE TABLE IF NOT EXISTS user (
+        CREATE TABLE IF NOT EXISTS province (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT
+        )''')
+    cur.execute('''
+        CREATE TABLE IF NOT EXISTS place (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT,
-            email TEXT,
-            password TEXT,
-            is_admin BOOLEAN
+            detail TEXT,
+            image TEXT,
+            image_url TEXT,
+            price FLOAT,
+            province_id INT
+        )''')
+    cur.execute('''
+        CREATE TABLE IF NOT EXISTS accomodation (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT,
+            detail TEXT,
+            image TEXT,
+            image_url TEXT,
+            price FLOAT,
+            province_id INT
+        )''')
+    cur.execute('''
+        CREATE TABLE IF NOT EXISTS transportation (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT,
+            detail TEXT,
+            image TEXT,
+            image_url TEXT,
+            price FLOAT
         )''')
     conn.commit()
     conn.close()
