@@ -134,7 +134,7 @@ def provinces():
     provinces = [{'id': row[0], 'name': row[1]} for row in cr.fetchall()]
     conn.commit()
     conn.close()
-    return {'province': provinces}, 200
+    return {'provinces': provinces}, 200
 
 @app.route('/province/create', methods=['POST'])
 def create_provinces():
@@ -218,10 +218,7 @@ def get_province_filtered_data():
     rate_place = place_domain / total
     rate_acco = acco_domain / total + 1
     rate_transp = transp_domain / total + 1
-    
-    print("filter====", filter_location, filter_category, filter_min, filter_max)
-    print("res====", place_domain, acco_domain, transp_domain, rate_place, rate_acco, rate_transp)
-        
+            
     for prov in provinces:
         
         place_filter = filter_max * rate_place
@@ -305,7 +302,7 @@ def create_accomodation():
 def transportations():
     conn = sqlite3.connect('data.db')
     cr = conn.cursor()
-    cr.execute('SELECT * FROM accomodation')
+    cr.execute('SELECT * FROM transportation')
     transportations = [{'id': row[0], 'name': row[1], 'detail': row[2], 'image': row[3], 'image_url': row[4], 'price': row[5]} for row in cr.fetchall()]
     conn.commit()
     conn.close()
