@@ -25,7 +25,7 @@ def get_sequence_id(cursor, table_name):
         ORDER BY id ASC;
     ''')
     last_id = cr.fetchall()[0]
-    id = last_id[0]+1 if last_id[0] else 0  + 1
+    id = last_id[0]+1 if last_id[0] else 0 + 1
     return id
 
 def check_exist(cursor, table_name, field, value):
@@ -58,6 +58,8 @@ def create_users():
     id = get_sequence_id(cr, table_name="user")
     check_name = check_exist(cr, "user", "name", data['name'])
     check_email = check_exist(cr, "user", "email", data['email'])
+    
+    print("res", check_name, check_email)
     
     if check_email or check_name:
         return {'status': False, 'message': "Email or Username already exist."}
@@ -147,6 +149,16 @@ def create_provinces():
     conn.close()
     return "Created Successfully.", 200
 
+@app.route('/province/selection')
+def provinces_selection():
+    conn = sqlite3.connect('data.db')
+    cr = conn.cursor()
+    cr.execute('SELECT * FROM province')
+    provinces = [{'value': row[0], 'label': row[1]} for row in cr.fetchall()]
+    conn.commit()
+    conn.close()
+    return {'provinces': provinces}, 200
+
 @app.route('/province/data')
 def get_province_data():
     conn = sqlite3.connect('data.db')
@@ -176,6 +188,67 @@ def get_province_data():
     conn.close()
     return {'data': data}, 200
 
+@app.route('/province/data/filtered', methods=['POST'])
+def get_province_filtered_data():
+    datas = []
+    data = request.get_json()
+    conn = sqlite3.connect('data.db')
+    cr = conn.cursor()
+    
+    filters = data.get('filter')
+    filter_category = filters['categories'][0] if filters['categories'] else None
+    filter_location = filters['locations'][0] if filters['locations'] else None
+    filter_min = filters.get('minBudget')
+    filter_max = filters.get('maxBudget')
+
+    if not filter_location:
+        cr.execute('SELECT * FROM province')
+        provinces = [{'id': row[0], 'name': row[1]} for row in cr.fetchall()]
+    else:
+        cr.execute('SELECT * FROM province WHERE id=' + str(filter_location))
+        provinces = [{'id': row[0], 'name': row[1]} for row in cr.fetchall()]
+    
+    cr.execute('SELECT SUM(price) FROM place')
+    place_domain = cr.fetchall()[0][0]
+    cr.execute('SELECT SUM(price) FROM accomodation')
+    acco_domain = cr.fetchall()[0][0]
+    cr.execute('SELECT SUM(price) FROM transportation')
+    transp_domain = cr.fetchall()[0][0]
+    total = place_domain + acco_domain + transp_domain
+    rate_place = place_domain / total
+    rate_acco = acco_domain / total + 1
+    rate_transp = transp_domain / total + 1
+    
+    print("filter====", filter_location, filter_category, filter_min, filter_max)
+    print("res====", place_domain, acco_domain, transp_domain, rate_place, rate_acco, rate_transp)
+        
+    for prov in provinces:
+        
+        place_filter = filter_max * rate_place
+        acco_filter = filter_max * rate_acco
+        transp_filter = filter_max * rate_transp
+        
+        print("filter====", place_filter, acco_filter, transp_filter)
+
+        
+        cr.execute('SELECT * FROM place WHERE province_id = ' + str(prov['id']) + ' AND price < ' + str(place_filter))
+        places = [{'id': row[0], 'name': row[1], 'detail': row[2], 'image': row[3], 'image_url': row[4], 'price': row[5], 'province_id': row[6]} for row in cr.fetchall()]
+        
+        cr.execute('SELECT * FROM accomodation WHERE province_id = ' + str(prov['id']) + ' AND price < ' + str(acco_filter))
+        accomodations = [{'id': row[0], 'name': row[1], 'detail': row[2], 'image': row[3], 'image_url': row[4], 'price': row[5], 'province_id': row[6]} for row in cr.fetchall()]
+        
+        cr.execute('SELECT * FROM transportation' + ' WHERE price < ' + str(transp_filter))
+        transportations = [{'id': row[0], 'name': row[1], 'detail': row[2], 'image': row[3], 'image_url': row[4], 'price': row[5]} for row in cr.fetchall()]
+        
+        datas.append({
+            'province': prov,
+            'place': places,
+            'accomodation': accomodations,
+            'transportation': transportations
+        })
+    conn.commit()
+    conn.close()
+    return {'data': datas, 'status': True}, 200
 
 
 
