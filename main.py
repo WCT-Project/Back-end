@@ -299,14 +299,17 @@ def get_province_filtered_data():
         acco_filter = filter_max * rate_acco
         transp_filter = filter_max * rate_transp
         
+        min_place_filter = filter_min * rate_place
+        min_acco_filter = filter_min * rate_acco
+        min_transp_filter = filter_min * rate_transp
         
-        cr.execute('SELECT * FROM place WHERE province_id = ' + str(prov['id']) + ' AND price < ' + str(place_filter))
+        cr.execute('SELECT * FROM place WHERE province_id = ' + str(prov['id']) + ' AND price < ' + str(place_filter) + ' AND price > ' + str(min_place_filter))
         places = [{'id': row[0], 'name': row[1], 'detail': row[2], 'image': row[3], 'image_url': row[4], 'price': row[5], 'province_id': row[6]} for row in cr.fetchall()]
         
-        cr.execute('SELECT * FROM accomodation WHERE province_id = ' + str(prov['id']) + ' AND price < ' + str(acco_filter))
+        cr.execute('SELECT * FROM accomodation WHERE province_id = ' + str(prov['id']) + ' AND price < ' + str(acco_filter) + ' AND price > ' + str(min_acco_filter))
         accomodations = [{'id': row[0], 'name': row[1], 'detail': row[2], 'image': row[3], 'image_url': row[4], 'price': row[5], 'province_id': row[6]} for row in cr.fetchall()]
         
-        cr.execute('SELECT * FROM transportation' + ' WHERE price < ' + str(transp_filter))
+        cr.execute('SELECT * FROM transportation' + ' WHERE price < ' + str(transp_filter) + 'AND price > ' + str(min_transp_filter))
         transportations = [{'id': row[0], 'name': row[1], 'detail': row[2], 'image': row[3], 'image_url': row[4], 'price': row[5]} for row in cr.fetchall()]
         
         datas.append({
