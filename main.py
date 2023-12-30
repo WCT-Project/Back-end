@@ -124,7 +124,46 @@ def create_categories():
     ''', (id, data['name'], data['detail'], data['image'], data['image_url']))
     conn.commit()
     conn.close()
-    return "Created Successfully.", 200
+    return {"message":"Created Successfully.", "status": True}
+
+
+# ---------------------- EDIT Category
+@app.route('/category/write', methods=['POST'])
+def write_categories():
+    data = request.get_json()
+    conn = sqlite3.connect('data.db')
+    cr = conn.cursor()
+    to_write = data.get('id')
+
+    if not to_write:
+        return {"message":"Cannot Edit.", "status": False}
+    cr.execute('''
+        UPDATE category
+            SET name = ?, detail = ?, image_url = ?
+            WHERE id = ?;
+    ''', (data['name'], data['detail'], data['image_url'], to_write))
+    conn.commit()
+    conn.close()
+    return {"message":"Edit Successfully.", "status": True}
+
+# ---------------------- DELETE Category
+@app.route('/category/unlink', methods=['POST'])
+def delete_categories():
+    data = request.get_json()
+    conn = sqlite3.connect('data.db')
+    cr = conn.cursor()
+    to_delete = data.get('id')
+
+    if not to_delete:
+        return {"message":"Cannot Delete.", "status": False}
+    cr.execute('''
+        DELETE FROM category WHERE id = ?;
+
+    ''', (to_delete))
+    conn.commit()
+    conn.close()
+    return {"message":"Deleted Successfully.", "status": True}
+
 
 @app.route('/province')
 def provinces():
@@ -147,7 +186,7 @@ def create_provinces():
     ''', (id, data['name']))
     conn.commit()
     conn.close()
-    return "Created Successfully.", 200
+    return {"message":"Created Successfully.", "status": True}
 
 @app.route('/province/selection')
 def provinces_selection():
@@ -270,7 +309,7 @@ def create_places():
     ''', (id, data['name'], data['detail'], data['image'], data['image_url'], data['price'], data['province_id']))
     conn.commit()
     conn.close()
-    return "Created Successfully.", 200
+    return {"message":"Created Successfully.", "status": True}
 
 
 
@@ -295,7 +334,7 @@ def create_accomodation():
     ''', (id, data['name'], data['detail'], data['image'], data['image_url'], data['price'], data['province_id']))
     conn.commit()
     conn.close()
-    return "Created Successfully.", 200
+    return {"message":"Created Successfully.", "status": True}
 
 
 @app.route('/transportation')
@@ -319,7 +358,7 @@ def create_transportation():
     ''', (id, data['name'], data['detail'], data['image'], data['image_url'], data['price']))
     conn.commit()
     conn.close()
-    return "Created Successfully.", 200
+    return {"message":"Created Successfully.", "status": True}
 
 
 
