@@ -188,6 +188,41 @@ def create_provinces():
     conn.close()
     return {"message":"Created Successfully.", "status": True}
 
+@app.route('/province/write', methods=['POST'])
+def write_provinces():
+    data = request.get_json()
+    conn = sqlite3.connect('data.db')
+    cr = conn.cursor()
+    to_write = data.get('id')
+
+    if not to_write:
+        return {"message":"Cannot Edit.", "status": False}
+    cr.execute('''
+        UPDATE province
+            SET name = ?
+            WHERE id = ?;
+    ''', (data['name'], to_write))
+    conn.commit()
+    conn.close()
+    return {"message":"Edit Successfully.", "status": True}
+
+@app.route('/province/unlink', methods=['POST'])
+def delete_provinces():
+    data = request.get_json()
+    conn = sqlite3.connect('data.db')
+    cr = conn.cursor()
+    to_delete = data.get('id')
+
+    if not to_delete:
+        return {"message":"Cannot Delete.", "status": False}
+    cr.execute('''
+        DELETE FROM province WHERE id = ?;
+
+    ''', (to_delete))
+    conn.commit()
+    conn.close()
+    return {"message":"Deleted Successfully.", "status": True}
+
 @app.route('/province/selection')
 def provinces_selection():
     conn = sqlite3.connect('data.db')
@@ -264,8 +299,6 @@ def get_province_filtered_data():
         acco_filter = filter_max * rate_acco
         transp_filter = filter_max * rate_transp
         
-        print("filter====", place_filter, acco_filter, transp_filter)
-
         
         cr.execute('SELECT * FROM place WHERE province_id = ' + str(prov['id']) + ' AND price < ' + str(place_filter))
         places = [{'id': row[0], 'name': row[1], 'detail': row[2], 'image': row[3], 'image_url': row[4], 'price': row[5], 'province_id': row[6]} for row in cr.fetchall()]
@@ -311,6 +344,40 @@ def create_places():
     conn.close()
     return {"message":"Created Successfully.", "status": True}
 
+@app.route('/place/write', methods=['POST'])
+def write_places():
+    data = request.get_json()
+    conn = sqlite3.connect('data.db')
+    cr = conn.cursor()
+    to_write = data.get('id')
+
+    if not to_write:
+        return {"message":"Cannot Edit.", "status": False}
+    cr.execute('''
+        UPDATE place
+            SET name = ?, detail = ?, image_url = ?, price = ?, province_id = ?
+            WHERE id = ?;
+    ''', (data['name'], data['detail'], data['image_url'], data['price'], data['province_id'], to_write))
+    conn.commit()
+    conn.close()
+    return {"message":"Edit Successfully.", "status": True}
+
+@app.route('/place/unlink', methods=['POST'])
+def delete_places():
+    data = request.get_json()
+    conn = sqlite3.connect('data.db')
+    cr = conn.cursor()
+    to_delete = data.get('id')
+
+    if not to_delete:
+        return {"message":"Cannot Delete.", "status": False}
+    cr.execute('''
+        DELETE FROM place WHERE id = ?;
+
+    ''', (to_delete))
+    conn.commit()
+    conn.close()
+    return {"message":"Deleted Successfully.", "status": True}
 
 
 @app.route('/accomodation')
@@ -336,6 +403,40 @@ def create_accomodation():
     conn.close()
     return {"message":"Created Successfully.", "status": True}
 
+@app.route('/accomodation/write', methods=['POST'])
+def write_accomodation():
+    data = request.get_json()
+    conn = sqlite3.connect('data.db')
+    cr = conn.cursor()
+    to_write = data.get('id')
+
+    if not to_write:
+        return {"message":"Cannot Edit.", "status": False}
+    cr.execute('''
+        UPDATE accomodation
+            SET name = ?, detail = ?, image_url = ?, price = ?, province_id = ?
+            WHERE id = ?;
+    ''', (data['name'], data['detail'], data['image_url'], data['price'], data['province_id'], to_write))
+    conn.commit()
+    conn.close()
+    return {"message":"Edit Successfully.", "status": True}
+
+@app.route('/accomodation/unlink', methods=['POST'])
+def delete_accomodations():
+    data = request.get_json()
+    conn = sqlite3.connect('data.db')
+    cr = conn.cursor()
+    to_delete = data.get('id')
+
+    if not to_delete:
+        return {"message":"Cannot Delete.", "status": False}
+    cr.execute('''
+        DELETE FROM accomodation WHERE id = ?;
+
+    ''', (to_delete))
+    conn.commit()
+    conn.close()
+    return {"message":"Deleted Successfully.", "status": True}
 
 @app.route('/transportation')
 def transportations():
@@ -360,6 +461,40 @@ def create_transportation():
     conn.close()
     return {"message":"Created Successfully.", "status": True}
 
+@app.route('/transportation/write', methods=['POST'])
+def transportation_places():
+    data = request.get_json()
+    conn = sqlite3.connect('data.db')
+    cr = conn.cursor()
+    to_write = data.get('id')
+
+    if not to_write:
+        return {"message":"Cannot Edit.", "status": False}
+    cr.execute('''
+        UPDATE place
+            SET name = ?, detail = ?, image_url = ?, price = ?
+            WHERE id = ?;
+    ''', (data['name'], data['detail'], data['image_url'], data['price'], to_write))
+    conn.commit()
+    conn.close()
+    return {"message":"Edit Successfully.", "status": True}
+
+@app.route('/transportation/unlink', methods=['POST'])
+def delete_transportations():
+    data = request.get_json()
+    conn = sqlite3.connect('data.db')
+    cr = conn.cursor()
+    to_delete = data.get('id')
+
+    if not to_delete:
+        return {"message":"Cannot Delete.", "status": False}
+    cr.execute('''
+        DELETE FROM transportation WHERE id = ?;
+
+    ''', (to_delete))
+    conn.commit()
+    conn.close()
+    return {"message":"Deleted Successfully.", "status": True}
 
 
 if __name__ == '__main__':
