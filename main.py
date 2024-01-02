@@ -258,6 +258,7 @@ def get_province_data():
             'accomodation': accomodations,
             'transportation': transportations
         })
+        
     conn.commit()
     conn.close()
     return {'data': data}, 200
@@ -329,7 +330,7 @@ def places():
     conn = sqlite3.connect('data.db')
     cr = conn.cursor()
     cr.execute('SELECT * FROM place')
-    places = [{'id': row[0], 'name': row[1], 'detail': row[2], 'image': row[3], 'image_url': row[4], 'price': row[5], 'province_id': row[5]} for row in cr.fetchall()]
+    places = [{'id': row[0], 'name': row[1], 'detail': row[2], 'image': row[3], 'image_url': row[4], 'price': row[5], 'province_id': row[6]} for row in cr.fetchall()]
     conn.commit()
     conn.close()
     return {'places': places}, 200
