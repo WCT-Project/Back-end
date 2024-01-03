@@ -475,7 +475,7 @@ def transportation_places():
     if not to_write:
         return {"message":"Cannot Edit.", "status": False}
     cr.execute('''
-        UPDATE place
+        UPDATE transportation
             SET name = ?, detail = ?, image_url = ?, price = ?
             WHERE id = ?;
     ''', (data['name'], data['detail'], data['image_url'], data['price'], to_write))
