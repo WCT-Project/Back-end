@@ -389,7 +389,7 @@ def accomodations():
     conn = sqlite3.connect('data.db')
     cr = conn.cursor()
     cr.execute('SELECT * FROM accomodation')
-    accomodations = [{'id': row[0], 'name': row[1], 'detail': row[2], 'image': row[3], 'image_url': row[4], 'price': row[5], 'province_id': row[5]} for row in cr.fetchall()]
+    accomodations = [{'id': row[0], 'name': row[1], 'detail': row[2], 'image': row[3], 'image_url': row[4], 'price': row[5], 'province_id': row[6]} for row in cr.fetchall()]
     conn.commit()
     conn.close()
     return {'accomodations': accomodations}, 200
