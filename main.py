@@ -252,12 +252,13 @@ def get_province_data():
         cr.execute('SELECT * FROM transportation')
         transportations = [{'id': row[0], 'name': row[1], 'detail': row[2], 'image': row[3], 'image_url': row[4], 'price': row[5]} for row in cr.fetchall()]
         
-        data.append({
-            'province': prov,
-            'place': places,
-            'accomodation': accomodations,
-            'transportation': transportations
-        })
+        if len(accomodations) or len(places):
+            data.append({
+                'province': prov,
+                'place': places,
+                'accomodation': accomodations,
+                'transportation': transportations
+            })
         
     conn.commit()
     conn.close()
@@ -313,12 +314,13 @@ def get_province_filtered_data():
         cr.execute('SELECT * FROM transportation' + ' WHERE price < ' + str(transp_filter) + ' AND price > ' + str(min_transp_filter))
         transportations = [{'id': row[0], 'name': row[1], 'detail': row[2], 'image': row[3], 'image_url': row[4], 'price': row[5]} for row in cr.fetchall()]
         
-        datas.append({
-            'province': prov,
-            'place': places,
-            'accomodation': accomodations,
-            'transportation': transportations
-        })
+        if len(accomodations) or len(places):    
+            datas.append({
+                'province': prov,
+                'place': places,
+                'accomodation': accomodations,
+                'transportation': transportations
+            }) 
     conn.commit()
     conn.close()
     return {'data': datas, 'status': True}, 200
